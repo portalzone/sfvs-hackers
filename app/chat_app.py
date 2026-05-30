@@ -6,6 +6,7 @@ Run from project root:
 
 import sys, os, re, time
 from datetime import datetime
+import plotly.graph_objects as go
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
@@ -185,6 +186,9 @@ if "messages" not in st.session_state:
 if "submissions" not in st.session_state:
     st.session_state.submissions = []
 
+if "input_key" not in st.session_state:
+    st.session_state.input_key = 0
+
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 def _extract(pattern, text, default):
@@ -210,16 +214,55 @@ def extract_telemetry(text):
         "rpm":           int(rpm),
     }
 
-def format_reply(result):
-    flag     = result.get("safety_flag", "0")
-    severity = result.get("severity_level", "5")
-    category = result.get("category", "routine_maintenance")
-    action   = result.get("recommended_action", "Continue baseline tracking protocols.")
-    reason   = result.get("log_entry", "")
-    verdict  = "🚨 **CRITICAL SAFETY FLAG** — Immediate operational intervention required" if str(flag) == "1" else "✅ **NORMAL OPERATIONS** — Routine status pathway"
-    lines = [verdict, "", f"**Severity Level:** {severity}", f"**Incident Category:** {category}", "", f"**Action Plan:** {action}"]
-    if reason: lines += ["", f"*{reason}*"]
-    return "\n".join(lines)
+# ── Key-bridging helpers (works with both old medical and new offshore response keys) ──
+
+def _get_flag(r):
+    v = r.get("safety_flag")
+    if v is not None:
+        return str(v)
+    return "1" if r.get("escalation_flag", "").upper() == "YES" else "0"
+
+def _get_severity(r):
+    return str(r.get("severity_level") or r.get("acuity_estimate") or "5")
+
+def _get_category(r):
+    cat = r.get("category") or ""
+    if cat:
+        return cat.replace("_", " ")
+    signals = r.get("risk_signals") or ""
+    return signals if signals.upper() not in ("", "NONE") else "general anomaly"
+
+def format_reply(result: dict) -> str:
+    flag     = _get_flag(result)
+    severity = _get_severity(result)
+    category = _get_category(result)
+    action   = result.get("recommended_action", "Continue monitoring per standard protocols.")
+    reason   = result.get("reasoning") or result.get("log_entry") or ""
+
+    if flag == "1":
+        opener = (
+            "🚨 **This entry has been flagged as a critical safety event.** "
+            "Based on the telemetry and log description provided, immediate intervention is recommended."
+        )
+    else:
+        opener = (
+            "✅ **No immediate safety concern detected.** "
+            "The metrics appear within routine operational parameters."
+        )
+
+    detail = f"The situation is assessed at **severity level {severity}**"
+    if category:
+        detail += f", classified as **{category}**"
+    detail += "."
+
+    parts = [opener, detail, f"**What to do next:** {action}"]
+    if reason:
+        parts.append(reason)
+    parts.append(
+        "*This is a decision support tool only. "
+        "Final operational decisions rest with the platform supervisor.*"
+    )
+    return "\n\n".join(parts)
 
 def severity_class(sev_str):
     s = str(sev_str)
@@ -229,16 +272,16 @@ def severity_class(sev_str):
     return "sev5"
 
 def operational_sort_key(sub):
-    flag = 0 if str(sub["result"].get("safety_flag")) == "1" else 1
-    try:    level = int(sub["result"].get("severity_level", 5))
+    flag = 0 if _get_flag(sub["result"]) == "1" else 1
+    try:    level = int(_get_severity(sub["result"]))
     except: level = 5
     return (flag, level, -sub["timestamp"])
 
 def render_submissions_panel():
     subs    = sorted(st.session_state.submissions, key=operational_sort_key)
     total   = len(subs)
-    n_flags = sum(1 for s in subs if str(s["result"].get("safety_flag")) == "1")
-    n_high  = sum(1 for s in subs if str(s["result"].get("severity_level")) in ("1", "2"))
+    n_flags = sum(1 for s in subs if _get_flag(s["result"]) == "1")
+    n_high  = sum(1 for s in subs if _get_severity(s["result"]) in ("1", "2"))
 
     # ── 3-card summary row ────────────────────────────────────────────────────
     st.markdown(f"""
@@ -269,57 +312,131 @@ def render_submissions_panel():
 
     # ── Analytics accordion ───────────────────────────────────────────────────
     from collections import Counter
-    cat_counts  = Counter(s["result"].get("category", "unknown") for s in subs)
-    sev_counts  = Counter(str(s["result"].get("severity_level", "5")) for s in subs)
+    cat_counts  = Counter(_get_category(s["result"]) for s in subs)
+    sev_counts  = Counter(_get_severity(s["result"]) for s in subs)
     flag_rate   = f"{(n_flags/total*100):.0f}%" if total else "0%"
-    top_cat     = cat_counts.most_common(1)[0][0].replace("_", " ").title() if cat_counts else "—"
-    avg_sev     = f"{sum(int(s['result'].get('severity_level',5)) for s in subs)/total:.1f}" if total else "—"
+    top_cat     = cat_counts.most_common(1)[0][0].title() if cat_counts else "—"
+    avg_sev     = f"{sum(int(_get_severity(s['result'])) for s in subs)/total:.1f}" if total else "—"
 
     with st.expander("📊  Analytics", expanded=False):
-        st.markdown(f"""
-        <div class="analytics-grid">
-            <div class="analytics-row">
-                <span class="analytics-key">Flag rate</span>
-                <span class="analytics-val">{flag_rate}</span>
-            </div>
-            <div class="analytics-row">
-                <span class="analytics-key">Avg severity</span>
-                <span class="analytics-val">{avg_sev}</span>
-            </div>
-            <div class="analytics-row">
-                <span class="analytics-key">Top category</span>
-                <span class="analytics-val">{top_cat}</span>
-            </div>
-            <div class="analytics-row">
-                <span class="analytics-key">Sev 1 / 2 / 3</span>
-                <span class="analytics-val">{sev_counts.get('1',0)} / {sev_counts.get('2',0)} / {sev_counts.get('3',0)}</span>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+        # ── Shared plot theme ─────────────────────────────────────────────────
+        _BG    = "#0f172a"
+        _GRID  = "#1e293b"
+        _FONT  = dict(family="IBM Plex Mono, monospace", color="#94a3b8", size=10)
+        _MARG  = dict(l=10, r=10, t=32, b=10)
 
-        # Category breakdown
-        st.markdown("<div style='margin-top:0.6rem;'>", unsafe_allow_html=True)
-        for cat, count in cat_counts.most_common():
-            pct = int(count / total * 100)
-            label = cat.replace("_", " ").title()
-            st.markdown(f"""
-            <div style="display:flex;justify-content:space-between;align-items:center;
-                        font-size:0.72rem;padding:3px 0;border-bottom:1px solid #1e293b;">
-                <span style="color:#64748b;">{label}</span>
-                <span style="font-family:'IBM Plex Mono',monospace;color:#94a3b8;">{count} &nbsp;
-                    <span style="color:#334155;">({pct}%)</span>
-                </span>
-            </div>
-            """, unsafe_allow_html=True)
-        st.markdown("</div>", unsafe_allow_html=True)
+        def _base_layout(**kw):
+            return dict(paper_bgcolor=_BG, plot_bgcolor=_BG,
+                        font=_FONT, margin=_MARG, **kw)
+
+        # ── Row 1: Donut (flag split) + Severity bar ──────────────────────────
+        ch1, ch2 = st.columns(2)
+
+        with ch1:
+            donut = go.Figure(go.Pie(
+                labels=["Critical", "Normal"],
+                values=[n_flags, max(total - n_flags, 0)],
+                hole=0.62,
+                marker=dict(colors=["#ef4444", "#22c55e"],
+                            line=dict(color=_BG, width=2)),
+                textinfo="percent",
+                textfont=dict(size=11, color="#fff"),
+                hovertemplate="%{label}: %{value} log(s)<extra></extra>",
+            ))
+            donut.update_layout(
+                **_base_layout(height=210, showlegend=True,
+                               legend=dict(orientation="h", y=-0.08,
+                                           font=dict(size=10, color="#64748b"))),
+                title=dict(text="Flag Split", font=dict(size=11, color="#64748b"), x=0.5),
+                annotations=[dict(text=f"<b>{flag_rate}</b><br>flagged",
+                                  x=0.5, y=0.5, showarrow=False,
+                                  font=dict(size=13, color="#ef4444" if n_flags else "#22c55e"))],
+            )
+            st.plotly_chart(donut, use_container_width=True, config={"displayModeBar": False})
+
+        with ch2:
+            sev_labels = ["Sev 1\nCritical", "Sev 2\nUrgent",
+                          "Sev 3\nElevated", "Sev 4\nScheduled", "Sev 5\nNormal"]
+            sev_vals   = [sev_counts.get(str(i), 0) for i in range(1, 6)]
+            sev_colors = ["#ef4444", "#f97316", "#f59e0b", "#22c55e", "#06b6d4"]
+
+            sev_bar = go.Figure(go.Bar(
+                x=sev_labels, y=sev_vals,
+                marker=dict(color=sev_colors, line=dict(color=_BG, width=1)),
+                hovertemplate="%{x}: %{y} log(s)<extra></extra>",
+            ))
+            sev_bar.update_layout(
+                **_base_layout(height=210, bargap=0.35,
+                               yaxis=dict(gridcolor=_GRID, zeroline=False, tickfont=dict(size=9)),
+                               xaxis=dict(tickfont=dict(size=8))),
+                title=dict(text="Severity Distribution", font=dict(size=11, color="#64748b"), x=0.5),
+            )
+            st.plotly_chart(sev_bar, use_container_width=True, config={"displayModeBar": False})
+
+        # ── Row 2: Incidents by category (horizontal bar) ─────────────────────
+        if cat_counts:
+            cats   = [c for c, _ in cat_counts.most_common()]
+            counts = [cat_counts[c] for c in cats]
+            labels = [c.replace("_", " ").title() for c in cats]
+
+            cat_bar = go.Figure(go.Bar(
+                y=labels, x=counts,
+                orientation="h",
+                marker=dict(color="#06b6d4", opacity=0.85,
+                            line=dict(color=_BG, width=1)),
+                hovertemplate="%{y}: %{x} log(s)<extra></extra>",
+                text=counts, textposition="outside",
+                textfont=dict(size=9, color="#64748b"),
+            ))
+            cat_bar.update_layout(
+                **_base_layout(
+                    height=max(160, len(cats) * 36 + 60),
+                    xaxis=dict(gridcolor=_GRID, zeroline=False),
+                    yaxis=dict(autorange="reversed", tickfont=dict(size=9)),
+                ),
+                title=dict(text="Incidents by Category", font=dict(size=11, color="#64748b"), x=0.5),
+            )
+            st.plotly_chart(cat_bar, use_container_width=True, config={"displayModeBar": False})
+
+        # ── Row 3: Pressure vs Temperature scatter (if telemetry present) ─────
+        telem_subs = [s for s in subs
+                      if s.get("telemetry") and s["telemetry"].get("pressure_psi", 0) > 0]
+        if len(telem_subs) >= 2:
+            pressures    = [s["telemetry"]["pressure_psi"]   for s in telem_subs]
+            temps        = [s["telemetry"]["temp_c"]          for s in telem_subs]
+            flags_s      = [_get_flag(s["result"])            for s in telem_subs]
+            dot_colors   = ["#ef4444" if f == "1" else "#22c55e" for f in flags_s]
+            hover_labels = [
+                f"Pressure: {p} PSI<br>Temp: {t}°C<br>{'⚠ Critical' if f == '1' else '✓ Normal'}"
+                for p, t, f in zip(pressures, temps, flags_s)
+            ]
+
+            scatter = go.Figure(go.Scatter(
+                x=pressures, y=temps,
+                mode="markers",
+                marker=dict(color=dot_colors, size=10, opacity=0.85,
+                            line=dict(color=_BG, width=1)),
+                hovertemplate="%{customdata}<extra></extra>",
+                customdata=hover_labels,
+            ))
+            scatter.update_layout(
+                **_base_layout(
+                    height=220,
+                    xaxis=dict(title="Pressure (PSI)", gridcolor=_GRID, zeroline=False),
+                    yaxis=dict(title="Temp (°C)",      gridcolor=_GRID, zeroline=False),
+                ),
+                title=dict(text="Pressure vs Temperature  (🔴 Critical · 🟢 Normal)",
+                           font=dict(size=11, color="#64748b"), x=0.5),
+            )
+            st.plotly_chart(scatter, use_container_width=True, config={"displayModeBar": False})
 
     # ── Submissions accordion list ────────────────────────────────────────────
     st.markdown("<div style='margin-top:0.5rem;'>", unsafe_allow_html=True)
     for rank, sub in enumerate(subs, 1):
         r         = sub["result"]
-        flag      = str(r.get("safety_flag", "0"))
-        severity  = r.get("severity_level", "5")
-        category  = r.get("category", "N/A").replace("_", " ").title()
+        flag      = _get_flag(r)
+        severity  = _get_severity(r)
+        category  = _get_category(r).title()
         action    = r.get("recommended_action", "")
         note_full = sub["note"]
         note_prev = note_full[:80] + "…" if len(note_full) > 80 else note_full
@@ -375,7 +492,7 @@ with col_chat:
             with st.chat_message(msg["role"]):
                 st.markdown(msg["content"])
 
-    user_text = st.text_area("Input log notes or current rig metrics...", height=80, label_visibility="collapsed", key="input_box")
+    user_text = st.text_area("Input log notes or current rig metrics...", height=80, label_visibility="collapsed", key=f"input_box_{st.session_state.input_key}")
     if st.button("Analyze Log", type="primary", use_container_width=True) and user_text.strip():
         with chat_container:
             with st.chat_message("user"):
@@ -417,6 +534,7 @@ with col_chat:
                 placeholder.markdown(reply)
 
         st.session_state.messages.append({"role": "assistant", "content": reply})
+        st.session_state.input_key += 1  # clears the text box on rerun
         st.rerun()
 
 # ── LEFT — Tracker panel ──────────────────────────────────────────────────────
