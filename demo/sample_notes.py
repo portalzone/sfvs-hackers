@@ -1,91 +1,68 @@
 """
 sample_notes.py
 
-Synthetic triage notes for hackathon demonstration.
-These are fictional patients — not based on real individuals.
-
-Each entry is a dict with:
-  - label: short name for the scenario
-  - expected_flag: what we expect the model to return (for sanity checking)
-  - note + vitals fields
+Demo cases drawn from the synthetic triage dataset (1000 cases).
+7 cases covering all major clinical categories.
 """
 
 DEMO_CASES = [
-    # ── HIGH RISK cases (should flag YES) ────────────────────────────────────
+    # ── HIGH RISK (should flag YES) ──────────────────────────────────────────
 
     {
-        "label": "Stroke — CTAS 2 expected",
+        "label": "Stroke — CTAS 1 expected",
         "expected_flag": "YES",
-        "note": (
-            "72F brought in by husband. Sudden onset left facial drooping, "
-            "slurred speech, right arm weakness. Husband says it started "
-            "approximately 45 minutes ago. Patient confused and anxious. "
-            "No known history of stroke. On ramipril for hypertension."
-        ),
-        "hr": 98, "sbp": 178, "dbp": 102, "rr": 18, "o2": 96.0,
-        "temp": 36.8, "gcs": "E3V4M5",
+        "note": "Pt c/o sudden onset facial drooping L side, slurred speech x1hr ago. Wife states arm weakness noted at home. No hx of CVA. Last known well 1hr ago.",
+        "hr": 105, "sbp": 160, "dbp": 108,
+        "rr": 22, "o2": 96.0, "temp": 36.5,
     },
 
     {
-        "label": "STEMI-like — CTAS 1/2 expected",
+        "label": "Cardiac — CTAS 1 expected",
         "expected_flag": "YES",
-        "note": (
-            "58M, crushing chest pain radiating to jaw and left arm, onset 20 "
-            "minutes ago. Profuse diaphoresis. Pale and clammy. Denies SOB but "
-            "looks distressed. History of type 2 diabetes. Takes metformin."
-        ),
-        "hr": 112, "sbp": 88, "dbp": 56, "rr": 22, "o2": 94.0,
-        "temp": 36.5, "gcs": "E4V5M6",
+        "note": "Tearing chest pain radiating to back, onset sudden earlier today. Hx of Marfan syndrome. BP asymmetry noted. Pale, diaphoretic.",
+        "hr": 96, "sbp": 180, "dbp": 101,
+        "rr": 24, "o2": 92.0, "temp": 36.5,
     },
 
     {
         "label": "Sepsis — CTAS 2 expected",
         "expected_flag": "YES",
-        "note": (
-            "81M from personal care home, brought by ambulance. Altered level "
-            "of consciousness, not responding to verbal commands. Staff report "
-            "he was well yesterday. Foul-smelling urine noted by staff. "
-            "History of dementia and recurrent UTIs."
-        ),
-        "hr": 118, "sbp": 82, "dbp": 48, "rr": 26, "o2": 91.0,
-        "temp": 38.9, "gcs": "E2V2M4",
+        "note": "Nursing home resident, 47F, brought in unresponsive. Staff report fever x2d, not eating. Foley catheter in situ. Temp 40.1.",
+        "hr": 110, "sbp": 84, "dbp": 64,
+        "rr": 27, "o2": 89.0, "temp": 39.3,
     },
 
     {
-        "label": "Pediatric respiratory distress — CTAS 2 expected",
+        "label": "Respiratory — CTAS 2 expected",
         "expected_flag": "YES",
-        "note": (
-            "4M infant, brought by mother. Increased work of breathing for "
-            "past 3 hours, nasal flaring, subcostal retractions. Poor feeding "
-            "since yesterday. No fever. Born premature at 34 weeks."
-        ),
-        "hr": 168, "sbp": 78, "dbp": 42, "rr": 62, "o2": 89.0,
-        "temp": 37.1, "gcs": "Not recorded",
-    },
-
-    # ── LOW RISK cases (should flag NO) ──────────────────────────────────────
-
-    {
-        "label": "Minor ankle sprain — CTAS 4/5 expected",
-        "expected_flag": "NO",
-        "note": (
-            "23M, twisted right ankle playing hockey approximately 2 hours ago. "
-            "Moderate swelling and bruising lateral aspect. Full weight bearing "
-            "with limp. No numbness or tingling. No other complaints."
-        ),
-        "hr": 76, "sbp": 124, "dbp": 78, "rr": 14, "o2": 99.0,
-        "temp": 36.6, "gcs": "E4V5M6",
+        "note": "47F, known severe asthma, not responding to nebs at home. Too breathless to complete sentences. O2 sat 88%. Onset 2hr ago.",
+        "hr": 120, "sbp": 131, "dbp": 84,
+        "rr": 33, "o2": 87.0, "temp": 37.3,
     },
 
     {
-        "label": "URI / sore throat — CTAS 4 expected",
+        "label": "Paediatric — CTAS 2 expected",
+        "expected_flag": "YES",
+        "note": "6yo F, sudden onset stridor and drooling. Appears toxic, sitting forward. Hx of no vaccinations. Onset 1.5hr ago.",
+        "hr": 134, "sbp": 87, "dbp": 62,
+        "rr": 26, "o2": 96.0, "temp": 38.3,
+    },
+
+    # ── ROUTINE (should flag NO) ──────────────────────────────────────────────
+
+    {
+        "label": "Minor — CTAS 5 expected",
         "expected_flag": "NO",
-        "note": (
-            "19F, sore throat and mild fever for 2 days. Bilateral tonsillar "
-            "erythema on inspection. No stridor, no drooling, voice normal. "
-            "Able to swallow, tolerating fluids. No rash. Up to date on vaccines."
-        ),
-        "hr": 82, "sbp": 118, "dbp": 72, "rr": 15, "o2": 98.0,
-        "temp": 38.1, "gcs": "E4V5M6",
+        "note": "Ear pain L side x2d, afebrile. No hearing loss reported. No vertigo. Hx of recurrent otitis media as child.",
+        "hr": 69, "sbp": 112, "dbp": 69,
+        "rr": 17, "o2": 97.0, "temp": 36.7,
+    },
+
+    {
+        "label": "Fracture — CTAS 3 expected",
+        "expected_flag": "NO",
+        "note": "Pt c/o heel pain after jump from height. Unable to wt bear bilaterally. Bilateral calcaneal tenderness. MOI 30min ago.",
+        "hr": 89, "sbp": 130, "dbp": 71,
+        "rr": 14, "o2": 100.0, "temp": 36.5,
     },
 ]
