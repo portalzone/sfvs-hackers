@@ -14,7 +14,10 @@ import os
 import re
 import warnings
 from pathlib import Path
-from dotenv import load_dotenv
+try:
+    from dotenv import load_dotenv
+except ImportError:
+    def load_dotenv(*a, **kw): pass  # python-dotenv not installed; env vars set externally
 from ibm_watsonx_ai import APIClient, Credentials
 from ibm_watsonx_ai.foundation_models import ModelInference
 try:
