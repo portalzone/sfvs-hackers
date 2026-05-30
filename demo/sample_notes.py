@@ -1,68 +1,61 @@
 """
 sample_notes.py
 
-Demo cases drawn from the synthetic triage dataset (1000 cases).
-7 cases covering all major clinical categories.
+Demo cases drawn from the synthetic offshore equipment dataset (1000 cases).
+7 cases covering major operational and safety risk categories.
 """
 
 DEMO_CASES = [
-    # ── HIGH RISK (should flag YES) ──────────────────────────────────────────
+    # ── HIGH RISK (should flag 1) ──────────────────────────────────────────
 
     {
-        "label": "Stroke — CTAS 1 expected",
-        "expected_flag": "YES",
-        "note": "Pt c/o sudden onset facial drooping L side, slurred speech x1hr ago. Wife states arm weakness noted at home. No hx of CVA. Last known well 1hr ago.",
-        "hr": 105, "sbp": 160, "dbp": 108,
-        "rr": 22, "o2": 96.0, "temp": 36.5,
+        "label": "Gas Leak — Severity Level 1 expected",
+        "expected_flag": "1",
+        "note": "High-pressure cementing unit — gas detection system triggered past 2 hours. Confirmed hydrocarbon leak at flange. Pressure 172 PSI. Shutdown valve closed. S. Newhook coordinating isolation.",
+        "pressure": 172, "temperature": 65.0, "vibration": 8.4, "flow": 49,
     },
 
     {
-        "label": "Cardiac — CTAS 1 expected",
-        "expected_flag": "YES",
-        "note": "Tearing chest pain radiating to back, onset sudden earlier today. Hx of Marfan syndrome. BP asymmetry noted. Pale, diaphoretic.",
-        "hr": 96, "sbp": 180, "dbp": 101,
-        "rr": 24, "o2": 92.0, "temp": 36.5,
+        "label": "Electrical Anomaly — Severity Level 2 expected",
+        "expected_flag": "1",
+        "note": "Main generator bus voltage drop down to 180V. Severe phase imbalance causing starter coil overheat. Hot spot thermal imaging showing 94C on connection terminal. Risk of arc flash.",
+        "pressure": 0, "temperature": 94.2, "vibration": 1.1, "flow": 0,
     },
 
     {
-        "label": "Sepsis — CTAS 2 expected",
-        "expected_flag": "YES",
-        "note": "Nursing home resident, 47F, brought in unresponsive. Staff report fever x2d, not eating. Foley catheter in situ. Temp 40.1.",
-        "hr": 110, "sbp": 84, "dbp": 64,
-        "rr": 27, "o2": 89.0, "temp": 39.3,
+        "label": "Process Upset — Severity Level 2 expected",
+        "expected_flag": "1",
+        "note": "Hydraulic circuit — erratic pressure fluctuations between 253 and 340 PSI past 2 hours. Cavitation noise audible at pump inlet. Flow rate dropped to 37%.",
+        "pressure": 253, "temperature": 68.4, "vibration": 15.2, "flow": 37,
     },
 
     {
-        "label": "Respiratory — CTAS 2 expected",
-        "expected_flag": "YES",
-        "note": "47F, known severe asthma, not responding to nebs at home. Too breathless to complete sentences. O2 sat 88%. Onset 2hr ago.",
-        "hr": 120, "sbp": 131, "dbp": 84,
-        "rr": 33, "o2": 87.0, "temp": 37.3,
+        "label": "Structural Fatigue — Severity Level 3 expected",
+        "expected_flag": "1",
+        "note": "Abnormal vibration on Choke manifold — reading 49.7 mm/s vs baseline of 4 mm/s since 0600. Resonance suspected. RPM reduced from rated. Structural team reviewing.",
+        "pressure": 348, "temperature": 54.5, "vibration": 49.7, "flow": 60,
     },
 
     {
-        "label": "Paediatric — CTAS 2 expected",
-        "expected_flag": "YES",
-        "note": "6yo F, sudden onset stridor and drooling. Appears toxic, sitting forward. Hx of no vaccinations. Onset 1.5hr ago.",
-        "hr": 134, "sbp": 87, "dbp": 62,
-        "rr": 26, "o2": 96.0, "temp": 38.3,
+        "label": "Corrosion — Severity Level 3 expected",
+        "expected_flag": "1",
+        "note": "Ballast pump connection thread showing corrosion and galling. Difficulty making up joint during stabbing. Pressure test not yet performed. Work stopped pending inspection.",
+        "pressure": 300, "temperature": 74.8, "vibration": 10.7, "flow": 88,
     },
 
-    # ── ROUTINE (should flag NO) ──────────────────────────────────────────────
+    # ── ROUTINE (should flag 0) ──────────────────────────────────────────────
 
     {
-        "label": "Minor — CTAS 5 expected",
-        "expected_flag": "NO",
-        "note": "Ear pain L side x2d, afebrile. No hearing loss reported. No vertigo. Hx of recurrent otitis media as child.",
-        "hr": 69, "sbp": 112, "dbp": 69,
-        "rr": 17, "o2": 97.0, "temp": 36.7,
+        "label": "Routine Maintenance — Severity Level 5 expected",
+        "expected_flag": "0",
+        "note": "Rotary table drive — scheduled 500hr service completed. Oil sample pulled, lube oil filters replaced. Drive spun un-loaded, parameters satisfactory, tool cleared back to operation.",
+        "pressure": 336, "temperature": 63.9, "vibration": 5.9, "flow": 91,
     },
 
     {
-        "label": "Fracture — CTAS 3 expected",
-        "expected_flag": "NO",
-        "note": "Pt c/o heel pain after jump from height. Unable to wt bear bilaterally. Bilateral calcaneal tenderness. MOI 30min ago.",
-        "hr": 89, "sbp": 130, "dbp": 71,
-        "rr": 14, "o2": 100.0, "temp": 36.5,
+        "label": "Normal Ops — Severity Level 5 expected",
+        "expected_flag": "0",
+        "note": "Shift handover check on Ballast pump — no issues to report. Flow rate 95%, all alarms clear. Previous shift completed without incident. C. Power handing over to R. Parsons.",
+        "pressure": 333, "temperature": 59.5, "vibration": 1.4, "flow": 95,
     },
 ]

@@ -9,62 +9,64 @@ import sys
 import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from tools.escalation_tool import analyze_triage_note, _parse_response
+from tools.escalation_tool import analyze_triage_note, _parse_response  # Retains core tool naming structures
 
 
 # ── Unit test: parser (no API needed) ────────────────────────────────────────
 
-def test_parser_yes():
-    raw = """ESCALATION_FLAG: YES
-ACUITY_ESTIMATE: CTAS 2
-RISK_SIGNALS: facial drooping, slurred speech, arm weakness
-RECOMMENDED_ACTION: Activate stroke protocol and notify physician immediately.
-REASONING: Sudden-onset focal neurological deficits in an elderly patient are
-consistent with acute ischemic stroke. The 45-minute window makes this a
-potential thrombolysis candidate."""
+def test_parser_escalate():
+    raw = """SAFETY_FLAG: 1
+SEVERITY_LEVEL: Level 1
+CATEGORY: gas_leak
+RECOMMENDED_ACTION: Trigger emergency shutdown valve (ESD) and isolate high-pressure line.
+LOG_ENTRY: High-pressure cementing unit — gas detection system triggered past 2 hours. 
+Confirmed hydrocarbon leak at flange. Pressure 172 PSI. Shutdown valve closed."""
+    
     result = _parse_response(raw)
-    assert result["escalation_flag"] == "YES", f"Expected YES, got {result['escalation_flag']}"
-    assert "CTAS 2" in result["acuity_estimate"]
-    assert "facial drooping" in result["risk_signals"]
-    print("✓ test_parser_yes passed")
+    assert str(result["safety_flag"]) == "1", f"Expected 1, got {result['safety_flag']}"
+    assert "Level 1" in result["severity_level"]
+    assert "gas_leak" in result["category"]
+    print("✓ test_parser_escalate passed")
 
 
-def test_parser_no():
-    raw = """ESCALATION_FLAG: NO
-ACUITY_ESTIMATE: CTAS 4
-RISK_SIGNALS: NONE
-RECOMMENDED_ACTION: Standard assessment and X-ray of right ankle.
-REASONING: Isolated musculoskeletal injury with stable vitals and preserved
-weight-bearing — no systemic concern."""
+def test_parser_routine():
+    raw = """SAFETY_FLAG: 0
+SEVERITY_LEVEL: Level 5
+CATEGORY: normal_ops
+RECOMMENDED_ACTION: Continue normal baseline tracking; standard shift handover.
+LOG_ENTRY: Shift handover check on Ballast pump — no issues to report. 
+Flow rate 95%, all telemetry indicators stable within safe operating thresholds."""
+    
     result = _parse_response(raw)
-    assert result["escalation_flag"] == "NO"
-    assert "CTAS 4" in result["acuity_estimate"]
-    print("✓ test_parser_no passed")
+    assert str(result["safety_flag"]) == "0", f"Expected 0, got {result['safety_flag']}"
+    assert "Level 5" in result["severity_level"]
+    print("✓ test_parser_routine passed")
 
 
 # ── Integration test: live API call (requires .env) ───────────────────────────
 
 def test_live_api():
-    """Calls the real API with a single low-risk case. Skips if no credentials."""
+    """Calls the real API with a single stable baseline case. Skips if no credentials."""
     if not os.getenv("WATSONX_API_KEY"):
         print("⚠  WATSONX_API_KEY not set — skipping live API test")
         return
 
     result = analyze_triage_note(
-        note="25M, mild headache since this morning. No nausea, vision normal, "
-             "neurological exam intact. Works night shifts. Slept 4 hours.",
-        hr=72, sbp=122, dbp=76, rr=14, o2=99.0, temp=36.7
+        note="Ballast pump running within baseline design conditions. Vibration is minimal, "
+             "seal temperatures matching surrounding ambient deck values. Mechanical visual inspection normal.",
+        pressure=110, temperature=22.0, vibration=0.5, flow=100
     )
-    assert result["escalation_flag"] in ("YES", "NO"), \
-        f"Unexpected flag value: {result['escalation_flag']}"
-    assert result["acuity_estimate"] is not None
-    print(f"✓ test_live_api passed — flag={result['escalation_flag']}, "
-          f"acuity={result['acuity_estimate']}")
+    
+    assert str(result["safety_flag"]) in ("1", "0"), \
+        f"Unexpected safety flag value returned: {result['safety_flag']}"
+    assert result["severity_level"] is not None
+    print(f"✓ test_live_api passed — safety_flag={result['safety_flag']}, "
+          f"severity={result['severity_level']}")
 
 
 if __name__ == "__main__":
-    print("Running tests...\n")
-    test_parser_yes()
-    test_parser_no()
+    print("Running system sanity checks...\n")
+    test_parser_escalate()
+    test_parser_routine()
     test_live_api()
-    print("\nAll tests done.")
+    print("\nAll tests completed.")

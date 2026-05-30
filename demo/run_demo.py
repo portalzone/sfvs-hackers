@@ -19,7 +19,7 @@ import argparse
 # Allow running from project root
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from tools.escalation_tool import analyze_triage_note
+from tools.escalation_tool import analyze_triage_note  # Keeps the same tool import structure
 from demo.sample_notes import DEMO_CASES
 
 # ANSI colours for terminal output
@@ -31,78 +31,76 @@ BOLD   = "\033[1m"
 RESET  = "\033[0m"
 
 
-def flag_colour(flag: str) -> str:
-    if flag == "YES":
-        return f"{RED}{BOLD}⚠  YES — ESCALATE{RESET}"
-    elif flag == "NO":
-        return f"{GREEN}✓  NO — ROUTINE{RESET}"
+def safety_flag_colour(flag: str) -> str:
+    # Coerces flag to string to protect against int/str type disparities
+    if str(flag) == "1":
+        return f"{RED}{BOLD}⚠  1 — CRITICAL SAFETY ESCALATION{RESET}"
+    elif str(flag) == "0":
+        return f"{GREEN}✓  0 — NORMAL OPERATIONS{RESET}"
     return f"{YELLOW}?  UNKNOWN{RESET}"
 
 
 def run_case(case: dict) -> bool:
-    """Run one case. Returns True if expected flag matched."""
+    """Run one asset log scenario. Returns True if expected safety flag matched."""
     print(f"\n{BOLD}{'─' * 60}{RESET}")
     print(f"{CYAN}{BOLD}SCENARIO: {case['label']}{RESET}")
-    print(f"\n{BOLD}Triage note:{RESET}")
+    print(f"\n{BOLD}Log entry:{RESET}")
     print(f"  {case['note']}")
-    print(f"\n{BOLD}Vitals:{RESET}  HR {case['hr']}  BP {case['sbp']}/{case['dbp']}"
-          f"  RR {case['rr']}  O2 {case['o2']}%  Temp {case['temp']}°C"
-          f"  GCS {case.get('gcs', 'N/R')}")
+    print(f"\n{BOLD}Telemetry:{RESET}  Pressure {case['pressure']} PSI  |  Temp {case['temperature']}°C"
+          f"  |  Vibration {case['vibration']} mm/s  |  Flow {case['flow']}%"
+          f"  |  RPM {case.get('rpm', 'N/R')}")
 
-    print(f"\n{YELLOW}Analyzing...{RESET}")
+    print(f"\n{YELLOW}Processing telemetry metrics...{RESET}")
 
     try:
         result = analyze_triage_note(
             note=case["note"],
-            hr=case["hr"],
-            sbp=case["sbp"],
-            dbp=case["dbp"],
-            rr=case["rr"],
-            o2=case["o2"],
-            temp=case["temp"],
-            gcs=case.get("gcs", "Not recorded"),
+            pressure=case["pressure"],
+            temperature=case["temperature"],
+            vibration=case["vibration"],
+            flow=case["flow"]
         )
     except Exception as e:
-        print(f"{RED}ERROR: {e}{RESET}")
+        print(f"{RED}ERROR EXECUTING REASONING ENGINE: {e}{RESET}")
         return False
 
-    print(f"\n{BOLD}── Agent Output ──────────────────────────────────────{RESET}")
-    print(f"  Escalation flag  : {flag_colour(result.get('escalation_flag', '?'))}")
-    print(f"  Acuity estimate  : {BOLD}{result.get('acuity_estimate', 'N/A')}{RESET}")
-    print(f"  Risk signals     : {result.get('risk_signals', 'NONE')}")
-    print(f"  Recommended action: {result.get('recommended_action', 'N/A')}")
-    print(f"  Reasoning        : {result.get('reasoning', 'N/A')}")
+    print(f"\n{BOLD}── Agent Evaluation Output ───────────────────────────{RESET}")
+    print(f"  Safety Flag      : {safety_flag_colour(result.get('safety_flag', '?'))}")
+    print(f"  Severity Level   : {BOLD}Level {result.get('severity_level', 'N/A')}{RESET}")
+    print(f"  Incident Category: {result.get('category', 'NONE')}")
+    print(f"  Action Plan      : {result.get('recommended_action', 'N/A')}")
+    print(f"  Engineering Logic: {result.get('log_entry', 'N/A')}")
 
-    expected = case.get("expected_flag", "?")
-    actual   = result.get("escalation_flag", "?")
+    expected = str(case.get("expected_flag", "?"))
+    actual   = str(result.get("safety_flag", "?"))
     matched  = expected == actual
     status   = f"{GREEN}✓ MATCH{RESET}" if matched else f"{RED}✗ MISMATCH (expected {expected}){RESET}"
-    print(f"\n  Validation       : {status}")
+    print(f"\n  Validation Check : {status}")
 
     return matched
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Run triage agent demo cases")
+    parser = argparse.ArgumentParser(description="Run offshore asset telemetry demo cases")
     parser.add_argument("--case", type=int, default=None,
                         help="Run only case number N (0-indexed)")
     args = parser.parse_args()
 
     cases = [DEMO_CASES[args.case]] if args.case is not None else DEMO_CASES
 
-    print(f"\n{BOLD}NL Triage Escalation Agent — IBM watsonx Hackathon 2026{RESET}")
-    print(f"Running {len(cases)} demo case(s) against {os.getenv('WATSONX_MODEL_ID', 'model not set')}")
+    print(f"\n{BOLD}Offshore Equipment Intelligence Agent — Anomaly & Safety Dashboard{RESET}")
+    print(f"Running {len(cases)} operational case(s) against {os.getenv('WATSONX_MODEL_ID', 'model not set')}")
 
     results = [run_case(c) for c in cases]
 
     total   = len(results)
     correct = sum(results)
     print(f"\n{BOLD}{'─' * 60}{RESET}")
-    print(f"Results: {correct}/{total} cases matched expected flag")
+    print(f"Results Summary: {correct}/{total} asset cases matched expected safety flag")
     if correct == total:
-        print(f"{GREEN}{BOLD}All cases passed ✓{RESET}")
+        print(f"{GREEN}{BOLD}All operational checks passed ✓{RESET}")
     else:
-        print(f"{YELLOW}Some cases need prompt tuning — check raw_response for clues{RESET}")
+        print(f"{YELLOW}Some edge cases need prompt refinement — review model's engineering logic output.{RESET}")
 
 
 if __name__ == "__main__":
