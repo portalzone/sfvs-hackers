@@ -12,10 +12,14 @@ This file is both:
 
 import os
 import re
+import warnings
 from pathlib import Path
 from dotenv import load_dotenv
 from ibm_watsonx_ai import APIClient, Credentials
 from ibm_watsonx_ai.foundation_models import ModelInference
+from ibm_watsonx_ai.wml_client_error import WatsonxAPIWarning
+
+warnings.filterwarnings("ignore", category=WatsonxAPIWarning)
 
 load_dotenv()
 
