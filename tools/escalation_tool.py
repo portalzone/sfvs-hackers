@@ -17,9 +17,12 @@ from pathlib import Path
 from dotenv import load_dotenv
 from ibm_watsonx_ai import APIClient, Credentials
 from ibm_watsonx_ai.foundation_models import ModelInference
-from ibm_watsonx_ai.wml_client_error import WatsonxAPIWarning
-
-warnings.filterwarnings("ignore", category=WatsonxAPIWarning)
+try:
+    from ibm_watsonx_ai.wml_client_error import WatsonxAPIWarning
+    warnings.filterwarnings("ignore", category=WatsonxAPIWarning)
+except ImportError:
+    # Older SDK versions don't export WatsonxAPIWarning — suppress by module name instead
+    warnings.filterwarnings("ignore", module="ibm_watsonx_ai")
 
 load_dotenv()
 
