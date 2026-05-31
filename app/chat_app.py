@@ -339,8 +339,7 @@ def render_submissions_panel():
                 hole=0.62,
                 marker=dict(colors=["#ef4444", "#22c55e"],
                             line=dict(color=_BG, width=2)),
-                textinfo="percent",
-                textfont=dict(size=11, color="#fff"),
+                textinfo="none",
                 hovertemplate="%{label}: %{value} log(s)<extra></extra>",
             ))
             donut.update_layout(
@@ -407,7 +406,8 @@ def render_submissions_panel():
             cat_bar.update_layout(
                 **_base_layout(
                     height=max(160, len(cats) * 36 + 60),
-                    xaxis=dict(gridcolor=_GRID, zeroline=False),
+                    xaxis=dict(gridcolor=_GRID, zeroline=False,
+                               dtick=1, tickformat="d"),
                     yaxis=dict(autorange="reversed", tickfont=dict(size=9)),
                 ),
                 title=dict(text="Incidents by Category", font=dict(size=11, color="#64748b"), x=0.5),

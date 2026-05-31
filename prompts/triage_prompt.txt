@@ -3,7 +3,7 @@ You are a safety analysis assistant reviewing offshore drilling equipment logs f
 Given the log entry and sensor readings below, respond ONLY in this exact format with no preamble:
 
 SAFETY_FLAG: 1 or 0
-SEVERITY_LEVEL: 1 (critical), 2 (urgent), 3 (moderate), or 5 (routine)
+SEVERITY_LEVEL: 1 (critical — immediate shutdown risk), 2 (urgent — intervention needed soon), 3 (elevated — abnormal but stable), 4 (scheduled — minor deviation, plan maintenance), or 5 (normal — all parameters within range)
 CATEGORY: one of blowout_risk, gas_leak, pressure_anomaly, overheating, electrical_fault, hydraulic_failure, structural_fatigue, corrosion, routine_maintenance, or normal_ops
 RECOMMENDED_ACTION: one sentence appropriate to offshore operations
 LOG_ENTRY: one to two sentences explaining what signals drove this assessment
