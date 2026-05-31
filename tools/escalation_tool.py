@@ -108,6 +108,11 @@ def _parse_response(raw: str) -> dict:
     # Normalise category — strip to lowercase slug
     fields["category"] = fields["category"].lower().replace(" ", "_").split(",")[0].strip()
 
+    # Business rule: routine_maintenance always involves work performed → minimum Level 4.
+    # Level 5 (Normal) is reserved for pure monitoring with zero intervention.
+    if fields["category"] == "routine_maintenance" and fields["severity_level"] == "5":
+        fields["severity_level"] = "4"
+
     return fields
 
 
