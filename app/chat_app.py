@@ -296,7 +296,7 @@ def render_submissions_panel():
         </div>
         <div class="stat-card">
             <p class="stat-value amber">{n_high}</p>
-            <p class="stat-label">High Warnings</p>
+            <p class="stat-label">Sev 1–2</p>
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -414,7 +414,55 @@ def render_submissions_panel():
             )
             st.plotly_chart(cat_bar, use_container_width=True, config={"displayModeBar": False})
 
-        # ── Row 3: Pressure vs Temperature scatter (if telemetry present) ─────
+        # ── Row 3: Severity trend line (if 2+ submissions) ───────────────────
+        if total >= 2:
+            subs_by_time = sorted(st.session_state.submissions,
+                                  key=lambda s: s["timestamp"])
+            trend_x      = [datetime.fromtimestamp(s["timestamp"]).strftime("%H:%M:%S")
+                            for s in subs_by_time]
+            trend_y      = [int(_get_severity(s["result"])) for s in subs_by_time]
+            trend_flags  = [_get_flag(s["result"]) for s in subs_by_time]
+            trend_colors = ["#ef4444" if f == "1" else "#22c55e" for f in trend_flags]
+            trend_hover  = [
+                f"Time: {x}<br>Severity: {y}<br>{'⚠ Critical' if f == '1' else '✓ Normal'}"
+                for x, y, f in zip(trend_x, trend_y, trend_flags)
+            ]
+
+            trend = go.Figure()
+            trend.add_trace(go.Scatter(
+                x=trend_x, y=trend_y,
+                mode="lines",
+                line=dict(color="#1e293b", width=2, dash="dot"),
+                hoverinfo="skip",
+                showlegend=False,
+            ))
+            trend.add_trace(go.Scatter(
+                x=trend_x, y=trend_y,
+                mode="markers",
+                marker=dict(color=trend_colors, size=11, opacity=0.9,
+                            line=dict(color=_BG, width=2)),
+                hovertemplate="%{customdata}<extra></extra>",
+                customdata=trend_hover,
+                showlegend=False,
+            ))
+            trend.update_layout(
+                **_base_layout(
+                    height=200,
+                    xaxis=dict(gridcolor=_GRID, zeroline=False,
+                               tickfont=dict(size=9)),
+                    yaxis=dict(gridcolor=_GRID, zeroline=False,
+                               autorange="reversed",
+                               tickvals=[1, 2, 3, 4, 5],
+                               ticktext=["1 Critical", "2 Urgent", "3 Elevated",
+                                         "4 Scheduled", "5 Normal"],
+                               tickfont=dict(size=9)),
+                ),
+                title=dict(text="Severity Trend Over Session  (🔴 Critical · 🟢 Normal)",
+                           font=dict(size=11, color="#64748b"), x=0.5),
+            )
+            st.plotly_chart(trend, use_container_width=True, config={"displayModeBar": False})
+
+        # ── Row 4: Pressure vs Temperature scatter (if telemetry present) ─────
         telem_subs = [s for s in subs
                       if s.get("telemetry") and s["telemetry"].get("pressure_psi", 0) > 0]
         if len(telem_subs) >= 2:
