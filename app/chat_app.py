@@ -355,23 +355,39 @@ def render_submissions_panel():
             st.plotly_chart(donut, use_container_width=True, config={"displayModeBar": False})
 
         with ch2:
-            sev_labels = ["Sev 1\nCritical", "Sev 2\nUrgent",
-                          "Sev 3\nElevated", "Sev 4\nScheduled", "Sev 5\nNormal"]
-            sev_vals   = [sev_counts.get(str(i), 0) for i in range(1, 6)]
-            sev_colors = ["#ef4444", "#f97316", "#f59e0b", "#22c55e", "#06b6d4"]
-
-            sev_bar = go.Figure(go.Bar(
-                x=sev_labels, y=sev_vals,
-                marker=dict(color=sev_colors, line=dict(color=_BG, width=1)),
-                hovertemplate="%{x}: %{y} log(s)<extra></extra>",
-            ))
-            sev_bar.update_layout(
-                **_base_layout(height=210, bargap=0.35,
-                               yaxis=dict(gridcolor=_GRID, zeroline=False, tickfont=dict(size=9)),
-                               xaxis=dict(tickfont=dict(size=8))),
-                title=dict(text="Severity Distribution", font=dict(size=11, color="#64748b"), x=0.5),
+            _SEV_META = [
+                ("1", "Critical",  "#ef4444"),
+                ("2", "Urgent",    "#f97316"),
+                ("3", "Elevated",  "#f59e0b"),
+                ("4", "Scheduled", "#22c55e"),
+                ("5", "Normal",    "#06b6d4"),
+            ]
+            st.markdown(
+                "<p style='font-family:IBM Plex Mono,monospace;font-size:0.72rem;"
+                "color:#64748b;text-transform:uppercase;letter-spacing:0.1em;"
+                "margin-bottom:0.5rem;'>Severity Levels</p>",
+                unsafe_allow_html=True,
             )
-            st.plotly_chart(sev_bar, use_container_width=True, config={"displayModeBar": False})
+            for lvl, label, color in _SEV_META:
+                count = sev_counts.get(lvl, 0)
+                bar_w = int(count / max(total, 1) * 100)
+                st.markdown(f"""
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                    <div style="font-family:'IBM Plex Mono',monospace;font-size:0.7rem;
+                                color:{color};width:14px;font-weight:700;">
+                        {lvl}
+                    </div>
+                    <div style="font-size:0.7rem;color:#64748b;width:68px;">{label}</div>
+                    <div style="flex:1;background:#1e293b;border-radius:4px;height:8px;overflow:hidden;">
+                        <div style="width:{bar_w}%;background:{color};height:100%;
+                                    border-radius:4px;transition:width 0.3s;"></div>
+                    </div>
+                    <div style="font-family:'IBM Plex Mono',monospace;font-size:0.72rem;
+                                color:#94a3b8;width:20px;text-align:right;">
+                        {count}
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
 
         # ── Row 2: Incidents by category (horizontal bar) ─────────────────────
         if cat_counts:
