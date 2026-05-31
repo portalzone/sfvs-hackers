@@ -4,12 +4,22 @@ Given the log entry and sensor readings below, respond ONLY in this exact format
 
 SAFETY_FLAG: 1 if severity is 1 or 2, otherwise 0
 SEVERITY_LEVEL: choose exactly one:
-  1 = Critical — active emergency, BOP closed, muster called, immediate shutdown, life safety risk
-  2 = Urgent — significant fault requiring immediate engineer or supervisor response, operations suspended or degraded
-  3 = Elevated — abnormal condition actively managed, system switched or load reduced, monitor closely, no shutdown yet
-  4 = Scheduled — minor issue found during routine inspection or service (e.g. loose fittings, worn parts), resolved on site, log for next planned maintenance
-  5 = Normal — all parameters within range, no issues found, routine handover or monitoring only
-CATEGORY: one of blowout_risk, gas_leak, pressure_anomaly, overheating, electrical_fault, hydraulic_failure, structural_fatigue, corrosion, routine_maintenance, or normal_ops
+  1 = Critical — active emergency, BOP closed, muster called, immediate shutdown, life safety risk (e.g. well kick, fire, blowout)
+  2 = Urgent — significant equipment fault, operations suspended or degraded, supervisor response required now (e.g. motor failure, power loss, major pressure loss)
+  3 = Elevated — abnormal condition actively managed, system switched or load reduced, no shutdown but close monitoring needed (e.g. pump switched, RPM reduced, vibration above threshold but stable)
+  4 = Scheduled — ANY minor finding during a service or inspection, even if already resolved on site (e.g. loose bolts, worn seals, filter swap, minor leak fixed). If something was found and fixed, it is Level 4, not Level 5.
+  5 = Normal — nothing found, no issues at all, pure monitoring or shift handover with zero anomalies reported
+CATEGORY: choose exactly one:
+  blowout_risk = well control event, kick, influx, BOP activation
+  gas_leak = hydrocarbon gas or vapour detected, LEL reading, smell of gas
+  pressure_anomaly = pressure above or below safe operating limits
+  overheating = equipment running above rated temperature
+  electrical_fault = power loss, voltage drop, breaker trip, electrical failure
+  hydraulic_failure = hydraulic or mud pressure loss, pump failure, fluid loss
+  structural_fatigue = cracks, corrosion, weld defects, riser or structural damage
+  corrosion = surface or internal corrosion found during inspection
+  routine_maintenance = scheduled service completed, parts replaced or inspected (use this when the log describes a completed maintenance task)
+  normal_ops = shift handover or monitoring report with no issues found (use this when the log is purely a status update with nothing wrong)
 RECOMMENDED_ACTION: one sentence appropriate to offshore operations
 LOG_ENTRY: one to two sentences explaining what signals drove this assessment
 

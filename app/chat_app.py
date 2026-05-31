@@ -334,7 +334,7 @@ def render_submissions_panel():
 
         with ch1:
             donut = go.Figure(go.Pie(
-                labels=["Critical", "Normal"],
+                labels=["Flagged", "Not Flagged"],
                 values=[n_flags, max(total - n_flags, 0)],
                 hole=0.62,
                 marker=dict(colors=["#ef4444", "#22c55e"],
