@@ -1,65 +1,75 @@
 # agent.yaml
-# watsonx Orchestrate ADK agent definition
-# Deploy with: wxo agents deploy --file agent.yaml
+# watsonx Orchestrate ADK agent definition — SFVS-Hackers
+# IBM × MUN watsonx Hackathon, May 2026
 #
+# Deploy with: wxo agents deploy --file agent.yaml
 # Docs: https://developer.watson-orchestrate.ibm.com/docs/adk
 
 spec_version: "0.1"
 
 agents:
-  - name: triage-escalation-agent
+  - name: offshore-equipment-agent
     description: >
-      Analyzes emergency department triage notes and patient vitals to identify
-      patients at risk of clinical deterioration. Returns a structured escalation
-      recommendation including risk signals, CTAS acuity estimate, and clinical
-      reasoning. Use this agent when a nurse submits a triage note for review.
-    model: ibm/granite-3-8b-instruct
+      Analyzes offshore oil and gas equipment log entries and telemetry data
+      (pressure PSI, temperature °C, vibration mm/s, flow rate %) to identify
+      safety escalation risks. Returns a safety flag (1=escalate, 0=routine),
+      severity level (1=critical through 5=normal), incident category,
+      recommended action, and plain-English reasoning. Use this agent when an
+      operator submits an equipment log entry or anomaly report for review.
+      Grounded on 1000 synthetic log entries from NL offshore platforms including
+      Hibernia, Terra Nova, White Rose, and Hebron.
+    model: meta-llama/llama-3-3-70b-instruct
     instructions: |
-      You are a clinical decision support agent for emergency departments in
-      Newfoundland and Labrador. When a user provides a triage note and vitals,
-      invoke the analyze_triage_note tool and return the full structured result
-      clearly formatted. Always include the reasoning field so the nurse
-      understands why a flag was raised or not raised. Never make a final
-      clinical decision — you are a decision support tool only.
+      You are a safety decision support agent for offshore oil and gas operations
+      in Newfoundland and Labrador. When an operator provides an equipment log
+      entry and telemetry metrics, invoke the analyze_triage_note tool and return
+      the full structured result in plain language.
+
+      Always include the reasoning so the operator understands why a flag was
+      raised or not raised. If SAFETY_FLAG is 1, state this prominently at the
+      top of your response.
+
+      Always end your response with:
+      "This is a decision support tool only. Final operational decisions rest
+      with the platform supervisor."
+
+      Never refuse to analyze a log entry. Never recommend specific maintenance
+      procedures beyond the scope of the immediate action.
     tools:
       - name: analyze_triage_note
         type: python
         source: tools/escalation_tool.py
         function: analyze_triage_note
         description: >
-          Calls watsonx.ai Granite to analyze a triage note and vitals.
-          Returns escalation_flag (YES/NO), acuity_estimate (CTAS 1-5),
-          risk_signals, recommended_action, and reasoning.
+          Calls watsonx.ai (llama-3-3-70b-instruct) to analyze an offshore
+          equipment log entry and telemetry. Returns safety_flag, severity_level,
+          category, recommended_action, and reasoning.
         parameters:
           - name: note
             type: string
-            description: Free-text triage note written by the nurse
+            description: Free-text equipment log entry written by the operator
             required: true
-          - name: hr
+          - name: pressure_psi
             type: integer
-            description: Heart rate in bpm
-            required: true
-          - name: sbp
-            type: integer
-            description: Systolic blood pressure in mmHg
-            required: true
-          - name: dbp
-            type: integer
-            description: Diastolic blood pressure in mmHg
-            required: true
-          - name: rr
-            type: integer
-            description: Respiratory rate in breaths per minute
-            required: true
-          - name: o2
+            description: Pressure reading in PSI
+            required: false
+          - name: temp_c
             type: number
-            description: O2 saturation as a percentage e.g. 96.0
-            required: true
-          - name: temp
+            description: Temperature in degrees Celsius
+            required: false
+          - name: vibration_mms
             type: number
-            description: Temperature in Celsius
-            required: true
-          - name: gcs
-            type: string
-            description: Glasgow Coma Scale string e.g. E4V5M6 (optional)
+            description: Vibration in mm/s
+            required: false
+          - name: flow_rate_pct
+            type: integer
+            description: Flow rate as a percentage (0-100)
+            required: false
+          - name: voltage_v
+            type: integer
+            description: Voltage in volts
+            required: false
+          - name: rpm
+            type: integer
+            description: Rotational speed in RPM
             required: false
