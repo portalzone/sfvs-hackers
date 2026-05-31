@@ -6,7 +6,8 @@
       "Bash(python -c ' *)",
       "Bash(python -c \"import plotly.graph_objects as go; print\\('plotly', go.__name__, 'OK'\\)\")",
       "Bash(python -c \"import plotly.graph_objects as go; print\\('plotly OK'\\)\")",
-      "Bash(python -m py_compile app/chat_app.py)"
+      "Bash(python -m py_compile app/chat_app.py)",
+      "Bash(python analysis/impact_analysis.py)"
     ]
   }
 }
