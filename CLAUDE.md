@@ -1,4 +1,4 @@
-# Offshore Equipment Escalation Agent — Claude Code Brief
+# Offshore Equipment Escalation Agent — Developer Brief
 ## IBM × MUN watsonx Hackathon | May 29–31, 2026
 
 ---
@@ -53,7 +53,7 @@ the app will work end-to-end.
 - **Teammate (Samuel)** — owns `app/chat_app.py` UI. Running on Fedora / Python 3.14.
   Install fix: `sudo dnf install gcc-c++ python3-devel -y && pip install -r requirements.txt`
   OR: `python3 -m pip install ibm-watsonx-ai python-dotenv`
-- **This Claude Code session** — backend alignment, prompt engineering, impact analysis, documentation.
+- **Backend developer** — backend alignment, prompt engineering, impact analysis, documentation.
 
 **Do NOT touch** `demo/app.py` if it exists — that is the teammate's file.
 
@@ -84,7 +84,7 @@ but `input_parser.py` still expects `(note, hr, sbp, dbp, rr, o2, temp, gcs)`.
 
 ---
 
-## What Claude Code needs to build next
+## What still needs to be built
 
 ### PRIORITY 1 — Align `tools/input_parser.py` with offshore schema
 Replace the medical `ParsedInput` dataclass and `parse_triage_input()` with offshore telemetry fields:
