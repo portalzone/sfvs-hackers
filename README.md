@@ -1,15 +1,15 @@
 # Offshore Equipment Escalation Agent
-### IBM × MUN watsonx Hackathon — May 29–31, 2026
+### IBM × MUN watsonx Hackathon, May 29 to 31, 2026
 
-An AI-powered safety decision support agent for offshore oil and gas operations in Newfoundland and Labrador. Built on IBM watsonx Orchestrate and watsonx.ai, the agent analyzes free-text equipment log entries and live telemetry data to flag safety risks, assign severity levels, and recommend immediate actions — in under 11 seconds.
+An AI-powered safety decision support agent for offshore oil and gas operations in Newfoundland and Labrador. Built on IBM watsonx Orchestrate and watsonx.ai, the agent analyzes free-text equipment log entries and live telemetry data to flag safety risks, assign severity levels, and recommend immediate actions, in under 11 seconds.
 
-**This app needs an IBM watsonx API key.** Set it in a `.env` file before running — see [Environment Variables](#environment-variables) below.
+**This app needs an IBM watsonx API key.** Set it in a `.env` file before running, see [Environment Variables](#environment-variables) below.
 
 ---
 
 ## Team
 
-**SFVS-Hackers** — led by Victor Muojeke, team of four.
+**SFVS-Hackers**, led by Victor Muojeke, team of four.
 
 | Name | Email | Role |
 |---|---|---|
@@ -24,28 +24,27 @@ An AI-powered safety decision support agent for offshore oil and gas operations 
 
 ## Problem
 
-Offshore platforms in Newfoundland and Labrador — including Hibernia, Terra Nova, White Rose, and Hebron — operate in some of the harshest conditions in the world. Equipment failures in these environments can escalate from anomaly to catastrophe in minutes.
+Offshore platforms in Newfoundland and Labrador, including Hibernia, Terra Nova, White Rose, and Hebron, operate in some of the harshest conditions in the world. Equipment failures in these environments can escalate from anomaly to catastrophe in minutes.
 
 Key challenges:
 - Operators process dozens of sensor feeds and handover logs simultaneously during shift changes
 - Critical signals (pressure spikes, thermal anomalies, vibration thresholds) can be buried in routine text logs
 - Manual review of equipment logs relies on operator experience and is prone to alert fatigue
-- Delayed escalation of mechanical faults has been a contributing factor in major offshore incidents globally
-- A single undetected critical event can result in $100M+ in damages, production losses, and liability
+- Missed or late escalations can lead to costly shutdowns and safety incidents
 
 ---
 
 ## Solution
 
-A natural language equipment monitoring agent that lets operators describe an anomaly in plain English — with or without inline telemetry — and receive an immediate, structured safety assessment:
+A natural language equipment monitoring agent that lets operators describe an anomaly in plain English, with or without inline telemetry, and receive an immediate, structured safety assessment:
 
-- **SAFETY_FLAG** — escalate (1) or routine (0)
-- **SEVERITY_LEVEL** — 1 (critical shutdown risk) through 5 (normal operations)
-- **CATEGORY** — incident type (blowout risk, gas leak, hydraulic failure, etc.)
-- **RECOMMENDED_ACTION** — one clear sentence for the operator
-- **REASONING** — plain English explanation of the assessment
+- **SAFETY_FLAG**: escalate (1) or routine (0)
+- **SEVERITY_LEVEL**: 1 (critical shutdown risk) through 5 (normal operations)
+- **CATEGORY**: incident type (blowout risk, gas leak, hydraulic failure, etc.)
+- **RECOMMENDED_ACTION**: one clear sentence for the operator
+- **REASONING**: plain English explanation of the assessment
 
-The agent is deployed on IBM watsonx Orchestrate and accessible as a chat interface. A local Streamlit dashboard provides a two-panel view: live telemetry diagnostics chat on the right, and an active incident tracker with analytics on the left.
+During the hackathon, the agent was deployed on IBM watsonx Orchestrate as a chat interface. A local Streamlit dashboard provides a two-panel view: live telemetry diagnostics chat on the right, and an active incident tracker with analytics on the left.
 
 ---
 
@@ -56,16 +55,12 @@ Evaluated against 30 live cases from the offshore equipment dataset using the li
 | Metric | Result |
 |---|---|
 | Overall safety flag accuracy | **90.0%** |
-| Severity level accuracy | 56.7% — model tends to over-escalate (conservative) |
-| False positive rate | **0.0%** — never unnecessarily alarms on routine logs |
-| False negative rate | 10.0% — 3 missed escalations (gas_leak, electrical_fault edge cases) |
+| Severity level accuracy | 56.7%, model tends to over-escalate (conservative) |
+| False positive rate | **0.0%**, never unnecessarily alarms on routine logs |
+| False negative rate | 10.0%, 3 missed escalations (gas_leak, electrical_fault edge cases) |
 | Average response time | **10.23 seconds** per log entry |
 | Fastest response | 3.42 seconds |
 | Categories at 100% accuracy | 8 out of 10 |
-
-> *"Our agent correctly identifies 90% of safety-critical offshore equipment events in under 11 seconds on average — with zero false positives on routine operations, meaning supervisors are never unnecessarily pulled from other duties."*
-
-> *"The model errs on the side of caution — it will over-escalate rather than under-escalate. A false positive is far less costly than a missed critical event on an offshore platform."*
 
 ---
 
@@ -77,14 +72,14 @@ Operator Input (natural language + inline metrics)
         ▼
 ┌─────────────────────┐
 │   Streamlit UI      │  app/chat_app.py
-│   (Two-panel)       │  • Chat panel — Asset Telemetry Diagnostics
+│   (Two-panel)       │  • Chat panel, Asset Telemetry Diagnostics
 │                     │  • Active Incident Tracker + Analytics
 └────────┬────────────┘
          │
          ▼
 ┌─────────────────────┐
 │  Telemetry Extractor│  extract_telemetry()
-│  (NLP regex)        │  • Pressure, Temp, Vibration, Flow, Voltage, RPM
+│  (NLP regex)        │  • Pressure, Temperature, Vibration, Flow
 └────────┬────────────┘
          │
          ▼
@@ -127,17 +122,17 @@ Operator Input (natural language + inline metrics)
 |---|---|
 | LLM | meta-llama/llama-3-3-70b-instruct via IBM watsonx.ai |
 | Agent platform | IBM watsonx Orchestrate (ReAct mode) |
-| Agent reasoning | ReAct — think, act, observe, refine |
+| Agent reasoning | ReAct: think, act, observe, refine |
 | UI | Streamlit + Plotly |
 | Backend | Python 3.13 |
 | Knowledge base | offshore_equipment_1000.csv (1000 synthetic log entries) |
-| Fonts / theme | IBM Plex Sans, IBM Plex Mono — dark theme |
+| Fonts / theme | IBM Plex Sans, IBM Plex Mono, dark theme |
 
 ---
 
 ## Dataset
 
-`data/offshore_equipment_1000.csv` — 1000 synthetic offshore equipment log entries
+`data/offshore_equipment_1000.csv`, 1000 synthetic offshore equipment log entries
 
 | Column | Description |
 |---|---|
@@ -145,8 +140,8 @@ Operator Input (natural language + inline metrics)
 | `platform` | Terra Nova, White Rose, Hibernia, Hebron |
 | `shift` | Day / Night |
 | `component` | Equipment system involved |
-| `category` | Incident type (9 categories) |
-| `severity_level` | 1 (critical) – 5 (normal) |
+| `category` | Incident type (10 categories) |
+| `severity_level` | 1 (critical) to 5 (normal) |
 | `safety_flag` | 1 = escalate, 0 = routine |
 | `pressure_psi` | Pressure reading in PSI |
 | `temp_c` | Temperature in °C |
@@ -164,10 +159,10 @@ Operator Input (natural language + inline metrics)
 
 | Level | Label | Meaning |
 |---|---|---|
-| 1 | Critical | Immediate shutdown risk — threshold breached |
-| 2 | Urgent | Approaching critical — intervention needed soon |
-| 3 | Elevated | Abnormal but stable — increased monitoring required |
-| 4 | Scheduled | Minor deviation — plan maintenance |
+| 1 | Critical | Immediate shutdown risk, threshold breached |
+| 2 | Urgent | Approaching critical, intervention needed soon |
+| 3 | Elevated | Abnormal but stable, increased monitoring required |
+| 4 | Scheduled | Minor deviation, plan maintenance |
 | 5 | Normal | All parameters within operational range |
 
 ---
@@ -193,9 +188,7 @@ streamlit run app/chat_app.py
 
 The app will open at `http://localhost:8501`
 
-> **Note:** `app/chat_app.py` is the live app. `app/app.py` is an old placeholder left over from early setup — do not run it.
-
-> **Note:** Per the hackathon guide, local deployment is the expected approach. The IBM watsonx.ai inference and Orchestrate agent run on IBM Cloud — only the UI is local.
+> **Note:** `app/chat_app.py` is the live app. `app/app.py` is an old placeholder left over from early setup. Do not run it.
 
 ---
 
@@ -223,7 +216,7 @@ sfvs-hackers/
 ├── analysis/
 │   ├── impact_analysis.py            # Accuracy evaluation script (30 live cases)
 │   ├── results.json                  # Full results from live model evaluation
-│   └── summary.txt                   # Pitch-ready summary of evaluation results
+│   └── summary.txt                   # Summary of evaluation results
 ├── data/
 │   └── offshore_equipment_1000.csv   # 1000-case synthetic offshore dataset
 ├── demo/
@@ -235,7 +228,7 @@ sfvs-hackers/
 │   ├── test_tool.py                  # Backend unit + integration tests
 │   └── test_parser.py                # Input parser unit tests (25 cases)
 ├── tools/
-│   ├── escalation_tool.py            # Core backend — calls watsonx.ai
+│   ├── escalation_tool.py            # Core backend, calls watsonx.ai
 │   └── input_parser.py               # Input sanitizer and validator
 ├── .env.example                      # Environment variable template
 ├── .gitignore
@@ -260,21 +253,20 @@ python analysis/impact_analysis.py
 
 ---
 
-## Accessing the Live Agent
+## watsonx Orchestrate Agent (hackathon)
 
-The agent is deployed on IBM watsonx Orchestrate under the **SFVS-Hackers** workspace.
+The agent was deployed on IBM watsonx Orchestrate under the **SFVS-Hackers** workspace during the hackathon.
 
 **Agent name:** Offshore Equipment Agent
 **Mode:** ReAct (high-stakes reasoning)
-**Access:** Log into watsonx Orchestrate → Agent chat → Offshore Equipment Agent
 
-**Critical event prompt:**
+**Critical event prompt (example):**
 ```
-High-pressure cementing unit — gas detection triggered. Pressure 172 PSI,
+High-pressure cementing unit, gas detection triggered. Pressure 172 PSI,
 Temp 65C, Vibration 8.4 mms, Flow 49%
 ```
 
-**Routine event prompt:**
+**Routine event prompt (example):**
 ```
 Completed 500-hour service on drill string compensator. Checked fluid levels,
 swapped filters, torqued fittings. Three loose nuts found and sorted.
@@ -285,9 +277,9 @@ No leaks, no unusual wear. Pressure 160 PSI, Temp 52C, Vibration 2.1 mms, Flow 8
 
 ## Technical Notes
 
-**Level 4 Scheduled business rule:** The LLM does not natively return Level 4 for routine maintenance — it classifies fully resolved service tasks as Level 5 (Normal). A post-processing rule in `tools/escalation_tool.py` enforces the constraint that any log classified as `routine_maintenance` receives a minimum severity of 4. This is a valid safety engineering rule: if maintenance was performed, it must be logged at Scheduled level minimum. Level 5 is reserved for pure passive monitoring with zero intervention.
+**Level 4 Scheduled business rule:** The LLM does not natively return Level 4 for routine maintenance. It classifies fully resolved service tasks as Level 5 (Normal). A post-processing rule in `tools/escalation_tool.py` enforces the constraint that any log classified as `routine_maintenance` receives a minimum severity of 4. This is a valid safety engineering rule: if maintenance was performed, it must be logged at Scheduled level minimum. Level 5 is reserved for pure passive monitoring with zero intervention.
 
-**Severity accuracy vs flag accuracy:** The agent achieves 90% accuracy on the binary escalation flag (escalate vs routine). Severity level accuracy (56.7%) is lower because the model is conservative — it tends to assign Level 1 or 2 where Level 3 might be more precise. For a safety-critical tool, over-escalation is the preferred failure mode.
+**Severity accuracy vs flag accuracy:** The agent achieves 90% accuracy on the binary escalation flag (escalate vs routine). Severity level accuracy (56.7%) is lower because the model is conservative. It tends to assign Level 1 or 2 where Level 3 might be more precise. For a safety-critical tool, over-escalation is the preferred failure mode.
 
 ---
 
@@ -297,22 +289,10 @@ This agent is designed as a **decision support tool only**. It does not replace 
 
 - All responses end with: *"Final operational decisions rest with the platform supervisor."*
 - The agent is configured with three safety guidelines enforcing escalation behaviour and decision boundaries
-- Temperature is set to 0.0 — deterministic, reproducible output for auditability
+- Temperature is set to 0.0, deterministic, reproducible output for auditability
 - No personal information is stored or processed
 
 ---
 
-## Hackathon Judging Criteria
-
-| Category | Max | Our Approach |
-|---|---|---|
-| Problem & Relevance | 10 | Offshore safety in NL — real platforms (Terra Nova, White Rose, Hibernia, Hebron), real operational risk |
-| Innovation | 10 | NLP telemetry extraction from free-text logs, ReAct reasoning on IBM watsonx, grounded on 1000-case dataset |
-| Technical Execution | 10 | Full pipeline: NLP extractor → input parser → watsonx.ai → structured output → Orchestrate agent |
-| Video & Communication | 10 | Live demo: Streamlit dashboard + Orchestrate agent chat |
-| Impact & Value | 10 | 90% accuracy, 0% false positive rate, under 11s response — quantified against 30 live cases |
-
----
-
-*Built at the IBM × Memorial University watsonx Hackathon, May 29–31, 2026.*
+*Built at the IBM × Memorial University watsonx Hackathon, May 29 to 31, 2026.*
 *This is a decision support tool only. Final operational decisions rest with the platform supervisor.*
