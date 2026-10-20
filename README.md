@@ -188,8 +188,6 @@ streamlit run app/chat_app.py
 
 The app will open at `http://localhost:8501`
 
-> **Note:** `app/chat_app.py` is the live app. `app/app.py` is an old placeholder left over from early setup. Do not run it.
-
 ---
 
 ## Environment Variables
