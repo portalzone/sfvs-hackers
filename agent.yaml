@@ -49,27 +49,19 @@ agents:
             type: string
             description: Free-text equipment log entry written by the operator
             required: true
-          - name: pressure_psi
+          - name: pressure
             type: integer
             description: Pressure reading in PSI
-            required: false
-          - name: temp_c
+            required: true
+          - name: temperature
             type: number
             description: Temperature in degrees Celsius
-            required: false
-          - name: vibration_mms
+            required: true
+          - name: vibration
             type: number
             description: Vibration in mm/s
-            required: false
-          - name: flow_rate_pct
+            required: true
+          - name: flow
             type: integer
             description: Flow rate as a percentage (0-100)
-            required: false
-          - name: voltage_v
-            type: integer
-            description: Voltage in volts
-            required: false
-          - name: rpm
-            type: integer
-            description: Rotational speed in RPM
-            required: false
+            required: true

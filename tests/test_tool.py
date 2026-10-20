@@ -24,7 +24,7 @@ Confirmed hydrocarbon leak at flange. Pressure 172 PSI. Shutdown valve closed.""
     
     result = _parse_response(raw)
     assert str(result["safety_flag"]) == "1", f"Expected 1, got {result['safety_flag']}"
-    assert "Level 1" in result["severity_level"]
+    assert result["severity_level"] == "1"
     assert "gas_leak" in result["category"]
     print("✓ test_parser_escalate passed")
 
@@ -39,7 +39,7 @@ Flow rate 95%, all telemetry indicators stable within safe operating thresholds.
     
     result = _parse_response(raw)
     assert str(result["safety_flag"]) == "0", f"Expected 0, got {result['safety_flag']}"
-    assert "Level 5" in result["severity_level"]
+    assert result["severity_level"] == "5"
     print("✓ test_parser_routine passed")
 
 

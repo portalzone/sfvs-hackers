@@ -3,11 +3,13 @@
 
 An AI-powered safety decision support agent for offshore oil and gas operations in Newfoundland and Labrador. Built on IBM watsonx Orchestrate and watsonx.ai, the agent analyzes free-text equipment log entries and live telemetry data to flag safety risks, assign severity levels, and recommend immediate actions — in under 11 seconds.
 
+**This app needs an IBM watsonx API key.** Set it in a `.env` file before running — see [Environment Variables](#environment-variables) below.
+
 ---
 
 ## Team
 
-**SFVS-Hackers**
+**SFVS-Hackers** — led by Victor Muojeke, team of four.
 
 | Name | Email | Role |
 |---|---|---|
@@ -190,6 +192,8 @@ streamlit run app/chat_app.py
 ```
 
 The app will open at `http://localhost:8501`
+
+> **Note:** `app/chat_app.py` is the live app. `app/app.py` is an old placeholder left over from early setup — do not run it.
 
 > **Note:** Per the hackathon guide, local deployment is the expected approach. The IBM watsonx.ai inference and Orchestrate agent run on IBM Cloud — only the UI is local.
 

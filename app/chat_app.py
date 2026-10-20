@@ -21,6 +21,7 @@ if os.path.exists(_env_path):
 
 import streamlit as st
 from tools.escalation_tool import analyze_triage_note
+from tools.input_parser import parse_triage_input
 
 # ── Page config ───────────────────────────────────────────────────────────────
 
@@ -569,16 +570,14 @@ with col_chat:
                 placeholder.markdown("_Processing telemetry metrics…_")
                 try:
                     telemetry = extract_telemetry(user_text)
-                    result = analyze_triage_note(
+                    parsed = parse_triage_input(
                         note=user_text,
-                        hr=telemetry["pressure_psi"],
-                        sbp=telemetry["voltage_v"],
-                        dbp=int(telemetry["flow_rate_pct"]),
-                        rr=int(telemetry["vibration_mms"]),
-                        o2=telemetry["flow_rate_pct"],
-                        temp=telemetry["temp_c"],
-                        gcs="Not recorded"
+                        pressure=telemetry["pressure_psi"],
+                        temperature=telemetry["temp_c"],
+                        vibration=telemetry["vibration_mms"],
+                        flow=telemetry["flow_rate_pct"],
                     )
+                    result = analyze_triage_note(**parsed.to_dict())
                     reply = format_reply(result)
                     st.session_state.submissions.append({
                         "note":      user_text,

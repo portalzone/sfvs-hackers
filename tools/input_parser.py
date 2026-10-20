@@ -13,12 +13,10 @@ from dataclasses import dataclass, field
 # ── Sensor validation ranges ──────────────────────────────────────────────────
 
 _SENSOR_RANGES = {
-    "pressure_psi":  (0,    2000,  int,   "Pressure",  "PSI"),
-    "temp_c":        (0.0,  400.0, float, "Temp",      "°C"),
-    "vibration_mms": (0.0,  200.0, float, "Vibration", "mm/s"),
-    "flow_rate_pct": (0.0,  100.0, float, "Flow Rate", "%"),
-    "voltage_v":     (0.0,  1000.0,float, "Voltage",   "V"),
-    "rpm":           (0,    10000, int,   "RPM",       "rpm"),
+    "pressure":    (0,    10000, int,   "Pressure",   "PSI"),
+    "temperature": (-50.0, 500.0, float, "Temperature", "°C"),
+    "vibration":   (0.0,  100.0, float, "Vibration",  "mm/s"),
+    "flow":        (0,    100,   int,   "Flow",       "%"),
 }
 
 # Units to strip from numeric strings
@@ -29,24 +27,20 @@ _UNIT_PATTERN = re.compile(
 
 @dataclass
 class ParsedInput:
-    note:          str
-    pressure_psi:  int
-    temp_c:        float
-    vibration_mms: float
-    flow_rate_pct: float
-    voltage_v:     float
-    rpm:           int
-    warnings:      list = field(default_factory=list)
+    note:        str
+    pressure:    int
+    temperature: float
+    vibration:   float
+    flow:        int
+    warnings:    list = field(default_factory=list)
 
     def to_dict(self) -> dict:
         return {
-            "note":          self.note,
-            "pressure_psi":  self.pressure_psi,
-            "temp_c":        self.temp_c,
-            "vibration_mms": self.vibration_mms,
-            "flow_rate_pct": self.flow_rate_pct,
-            "voltage_v":     self.voltage_v,
-            "rpm":           self.rpm,
+            "note":        self.note,
+            "pressure":    self.pressure,
+            "temperature": self.temperature,
+            "vibration":   self.vibration,
+            "flow":        self.flow,
         }
 
 
@@ -103,13 +97,13 @@ def _clean_sensor(raw, name: str, warnings: list):
         value = float(value_str)
     except ValueError:
         raise ValueError(
-            f"{label} value '{raw}' could not be parsed as a number. "
+            f"{name} value '{raw}' could not be parsed as a number. "
             f"Expected a numeric value in {unit}."
         )
 
     if value < lo or value > hi:
         raise ValueError(
-            f"{label} value {value} is outside the plausible range "
+            f"{name} value {value} is outside the plausible range "
             f"({lo}–{hi} {unit}). Please verify and re-enter."
         )
 
@@ -120,20 +114,13 @@ def _clean_sensor(raw, name: str, warnings: list):
 
 def parse_triage_input(
     note,
-    pressure_psi  = None,
-    temp_c        = None,
-    vibration_mms = None,
-    flow_rate_pct = None,
-    voltage_v     = None,
-    rpm           = None,
-    # Legacy triage param names accepted silently so old call sites don't break
-    hr=None, sbp=None, dbp=None, rr=None, o2=None, temp=None, gcs=None,
+    pressure    = None,
+    temperature = None,
+    vibration   = None,
+    flow        = None,
 ) -> ParsedInput:
     """
     Validate and clean all equipment log inputs.
-
-    Accepts offshore sensor kwargs (pressure_psi, temp_c, etc.) or the legacy
-    triage kwargs (hr, sbp, etc.) — whichever are provided get mapped across.
 
     Raises ValueError with a human-readable message for fatal failures.
     Non-fatal issues are stored in ParsedInput.warnings.
@@ -143,28 +130,17 @@ def parse_triage_input(
     """
     warns: list = []
 
-    # Map legacy triage fields to sensor fields if offshore fields not supplied
-    if pressure_psi  is None and hr   is not None: pressure_psi  = hr
-    if temp_c        is None and temp is not None: temp_c        = temp
-    if vibration_mms is None and rr   is not None: vibration_mms = float(rr)
-    if flow_rate_pct is None and dbp  is not None: flow_rate_pct = float(dbp)
-    if voltage_v     is None and sbp  is not None: voltage_v     = float(sbp)
-
-    cleaned_note     = _clean_note(note, warns)
-    cleaned_pressure = _clean_sensor(pressure_psi,  "pressure_psi",  warns)
-    cleaned_temp     = _clean_sensor(temp_c,         "temp_c",        warns)
-    cleaned_vib      = _clean_sensor(vibration_mms,  "vibration_mms", warns)
-    cleaned_flow     = _clean_sensor(flow_rate_pct,  "flow_rate_pct", warns)
-    cleaned_voltage  = _clean_sensor(voltage_v,      "voltage_v",     warns)
-    cleaned_rpm      = _clean_sensor(rpm,            "rpm",           warns)
+    cleaned_note = _clean_note(note, warns)
+    cleaned_pressure = _clean_sensor(pressure, "pressure", warns)
+    cleaned_temp = _clean_sensor(temperature, "temperature", warns)
+    cleaned_vib = _clean_sensor(vibration, "vibration", warns)
+    cleaned_flow = _clean_sensor(flow, "flow", warns)
 
     return ParsedInput(
         note=cleaned_note,
-        pressure_psi=cleaned_pressure,
-        temp_c=cleaned_temp,
-        vibration_mms=cleaned_vib,
-        flow_rate_pct=cleaned_flow,
-        voltage_v=cleaned_voltage,
-        rpm=cleaned_rpm,
+        pressure=cleaned_pressure,
+        temperature=cleaned_temp,
+        vibration=cleaned_vib,
+        flow=cleaned_flow,
         warnings=warns,
     )

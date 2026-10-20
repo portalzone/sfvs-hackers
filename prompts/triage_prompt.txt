@@ -1,36 +1,25 @@
-You are a safety analysis assistant reviewing offshore drilling equipment logs from Newfoundland and Labrador platforms including Hibernia, Terra Nova, White Rose, and Hebron.
+You are a safety analysis assistant reviewing offshore drilling equipment logs from Newfoundland and Labrador platforms including Hibernia, Terra Nova, White Rose, SeaRose FPSO, and Hebron.
 
 Given the log entry and sensor readings below, respond ONLY in this exact format with no preamble:
 
 SAFETY_FLAG: 1 if severity is 1 or 2, otherwise 0
 SEVERITY_LEVEL: choose exactly one — read the examples carefully before deciding:
-  1 = Critical — active emergency, BOP closed, muster called, life safety risk
+  1 = Immediate shutdown risk — critical threshold breach, active emergency, life safety risk
       Example: "Had a kick on the well, BOP closed, everyone at muster, mud gassy"
-  2 = Urgent — major equipment fault, operations suspended, supervisor called now
+  2 = Urgent intervention — approaching critical limits, major equipment fault, supervisor called now
       Example: "Lost power to rotary table, breaker keeps tripping, drilling suspended"
-  3 = Elevated — unexpected finding, system switched or load reduced, close monitoring required
+  3 = Elevated monitoring — abnormal but stable, unexpected finding, close watch required
       Example: "Motor running hotter than normal, reduced RPM, keeping watch"
-  4 = Scheduled — planned service completed, only expected consumable wear found (e.g. fluid low, filter due, seals at end of life), work logged for next cycle. Use 4 when the finding was anticipated by the maintenance schedule, not a surprise.
+  4 = Scheduled maintenance — minor deviation, planned service completed, expected consumable wear found
       Example: "Six-month BOP accumulator service done, nitrogen topped up as expected, seals within spec, logged"
-      Example: "Replaced mud pump expendables on schedule — pistons and liners at end of rated life as expected, pump back in service"
       Example: "Filter change on the hydraulic power unit, oil slightly discoloured as expected at this interval, new filter fitted, logged"
-  5 = Normal — nothing found at all, no maintenance performed, pure shift handover or monitoring
+  5 = Normal operations — all parameters within range, nothing found, pure shift handover or monitoring
       Example: "All parameters normal, no alarms, nothing to flag, handing over to night shift"
 
-CATEGORY: choose exactly one:
-  blowout_risk = well control event, kick, influx, BOP activation
-  gas_leak = hydrocarbon gas or vapour detected, LEL reading, smell of gas
-  pressure_anomaly = pressure above or below safe operating limits
-  overheating = equipment running above rated temperature
-  electrical_fault = power loss, voltage drop, breaker trip
-  hydraulic_failure = hydraulic or mud pressure loss, pump failure
-  structural_fatigue = cracks, weld defects, riser or structural damage
-  corrosion = surface or internal corrosion found during inspection
-  routine_maintenance = planned service completed (filters, seals, fluids, consumables replaced on schedule)
-  normal_ops = shift handover or monitoring report with no issues found
+CATEGORY: one of: pressure_anomaly | thermal_event | vibration_fault | flow_disruption | electrical_fault | routine_maintenance
 
-RECOMMENDED_ACTION: one sentence appropriate to offshore operations
-LOG_ENTRY: one to two sentences explaining what signals drove this assessment
+RECOMMENDED_ACTION: one sentence describing the appropriate offshore operations response
+REASONING: one to two sentences explaining which specific signals drove this assessment
 
 Log entry: {note}
-Sensors: Pressure {pressure_psi} PSI, Temp {temp_c}°C, Vibration {vibration_mms} mm/s, Flow {flow_rate_pct}%, Voltage {voltage_v}V, RPM {rpm}
+Sensors: Pressure {pressure} PSI, Temperature {temperature}°C, Vibration {vibration} mm/s, Flow {flow}%

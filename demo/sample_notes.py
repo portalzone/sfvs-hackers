@@ -58,4 +58,11 @@ DEMO_CASES = [
         "note": "Shift handover check on Ballast pump — no issues to report. Flow rate 95%, all alarms clear. Previous shift completed without incident. C. Power handing over to R. Parsons.",
         "pressure": 333, "temperature": 59.5, "vibration": 1.4, "flow": 95,
     },
+
+    {
+        "label": "Electrical Deviation — Severity Level 3 expected",
+        "expected_flag": "0",
+        "note": "Minor voltage fluctuation noted on secondary switchgear panel, reading 410-425V against a 415V baseline. No tripped breakers, no alarms raised. Electrician logging trend for next shift review.",
+        "pressure": 310, "temperature": 61.0, "vibration": 2.3, "flow": 90,
+    },
 ]

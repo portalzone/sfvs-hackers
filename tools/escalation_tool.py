@@ -35,24 +35,8 @@ _PROJECT_ID   = os.getenv("WATSONX_PROJECT_ID")
 _MODEL_ID     = os.getenv("WATSONX_MODEL_ID", "ibm/granite-3-8b-instruct")
 
 # ── Prompt template ───────────────────────────────────────────────────────────
-_PROMPT_TEMPLATE = """\
-You are a safety analysis assistant reviewing offshore drilling equipment logs \
-from Newfoundland and Labrador platforms including Hibernia, Terra Nova, \
-White Rose, SeaRose FPSO, and Hebron.
-
-Given the log entry and sensor readings below, respond ONLY in this exact format \
-with no preamble, explanation, or extra text:
-
-SAFETY_FLAG: 1 or 0
-SEVERITY_LEVEL: 1 (critical/life-safety), 2 (urgent/equipment risk), 3 (moderate/monitor), or 5 (routine)
-CATEGORY: one of blowout_risk, gas_leak, pressure_anomaly, overheating, electrical_fault, hydraulic_failure, structural_fatigue, corrosion, routine_maintenance, or normal_ops
-RECOMMENDED_ACTION: one sentence describing the appropriate offshore operations response
-LOG_ENTRY: one to two sentences explaining which specific signals drove this assessment
-
-Log entry: {note}
-Sensors: Pressure {pressure_psi} PSI, Temp {temp_c}°C, Vibration {vibration_mms} mm/s, \
-Flow {flow_rate_pct}%, Voltage {voltage_v}V, RPM {rpm}
-"""
+_PROMPT_PATH = Path(__file__).resolve().parent.parent / "prompts" / "triage_prompt.txt"
+_PROMPT_TEMPLATE = _PROMPT_PATH.read_text()
 
 
 def _get_model() -> ModelInference:
@@ -80,7 +64,7 @@ def _parse_response(raw: str) -> dict:
         "severity_level":     "5",
         "category":           "normal_ops",
         "recommended_action": "Continue baseline monitoring protocols.",
-        "log_entry":          "",
+        "reasoning":          "",
         "raw_response":       raw.strip(),
     }
 
@@ -89,7 +73,7 @@ def _parse_response(raw: str) -> dict:
         "severity_level":     r"SEVERITY_LEVEL:\s*(.+)",
         "category":           r"CATEGORY:\s*(.+)",
         "recommended_action": r"RECOMMENDED_ACTION:\s*(.+)",
-        "log_entry":          r"LOG_ENTRY:\s*(.+)",
+        "reasoning":          r"REASONING:\s*(.+)",
     }
 
     for key, pattern in patterns.items():
@@ -118,54 +102,29 @@ def _parse_response(raw: str) -> dict:
 
 def analyze_triage_note(
     note: str,
-    hr: int   = 300,
-    sbp: int  = 415,
-    dbp: int  = 85,
-    rr: int   = 3,
-    o2: float = 3.0,
-    temp: float = 65.0,
-    gcs: str  = "Not recorded",
-    # Offshore sensor names (preferred when called from chat_app)
-    pressure_psi:  int   = None,
-    temp_c:        float = None,
-    vibration_mms: float = None,
-    flow_rate_pct: float = None,
-    voltage_v:     float = None,
-    rpm:           int   = None,
+    pressure: int,
+    temperature: float,
+    vibration: float,
+    flow: int,
 ) -> dict:
     """
     Analyze an equipment log entry for safety risk.
 
-    Accepts either offshore sensor kwargs (pressure_psi, temp_c, etc.)
-    or the legacy triage kwargs (hr, sbp, dbp, rr, o2, temp) so both
-    chat_app.py call styles work without error.
-
     Returns:
         dict with keys: safety_flag, severity_level, category,
-                        recommended_action, log_entry, raw_response
+                        recommended_action, reasoning, raw_response
     """
     if not _API_KEY or not _PROJECT_ID:
         raise EnvironmentError(
             "WATSONX_API_KEY and WATSONX_PROJECT_ID must be set in .env"
         )
 
-    # Resolve sensor values — prefer explicit offshore kwargs, fall back to
-    # legacy triage mappings so old call sites don't break
-    pressure_psi  = pressure_psi  if pressure_psi  is not None else hr
-    temp_c        = temp_c        if temp_c        is not None else temp
-    vibration_mms = vibration_mms if vibration_mms is not None else float(rr)
-    flow_rate_pct = flow_rate_pct if flow_rate_pct is not None else float(dbp)
-    voltage_v     = voltage_v     if voltage_v     is not None else float(sbp)
-    rpm           = rpm           if rpm           is not None else 1100
-
     prompt = _PROMPT_TEMPLATE.format(
         note=note.strip(),
-        pressure_psi=pressure_psi,
-        temp_c=temp_c,
-        vibration_mms=vibration_mms,
-        flow_rate_pct=flow_rate_pct,
-        voltage_v=voltage_v,
-        rpm=rpm,
+        pressure=pressure,
+        temperature=temperature,
+        vibration=vibration,
+        flow=flow,
     )
 
     model = _get_model()
@@ -183,8 +142,7 @@ if __name__ == "__main__":
     )
     result = analyze_triage_note(
         note=test_note,
-        pressure_psi=920, temp_c=98.5, vibration_mms=24.2,
-        flow_rate_pct=12.0, voltage_v=415.0, rpm=1850
+        pressure=920, temperature=98.5, vibration=24.2, flow=12
     )
     print("\n── Safety Analysis ──────────────────────────────────")
     for k, v in result.items():
